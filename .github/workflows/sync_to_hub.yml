@@ -17,5 +17,9 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "HF_TOKEN not found. Skipping Hugging Face Sync."
+            exit 0
+          fi
           git remote add space https://navari:$HF_TOKEN@huggingface.co/spaces/navari/age_gender_detection
           git push --force space main
