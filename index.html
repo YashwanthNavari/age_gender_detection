@@ -161,9 +161,9 @@ import os
 import cv2
 import numpy as np
 import gradio as gr
-from pyodide.http import open_url
+import pyodide.http
 
-# 1. Download models using pyodide
+# 1. Download models using pyodide async pyfetch to handle binary safely!
 MODELS_DIR = "models"
 os.makedirs(MODELS_DIR, exist_ok=True)
 
@@ -176,20 +176,18 @@ models = {
     "res10_300x300_ssd_iter_140000.caffemodel": "https://raw.githubusercontent.com/YashwanthNavari/age_gender_detection/main/models/res10_300x300_ssd_iter_140000.caffemodel"
 }
 
-def load_models_safely():
+async def load_models_safely():
     for name, url in models.items():
         path = os.path.join(MODELS_DIR, name)
         if not os.path.exists(path):
             print(f"Downloading {name}...")
-            content = open_url(url).read()
+            response = await pyodide.http.pyfetch(url)
+            data = await response.bytes()
             with open(path, "wb") as f:
-                if isinstance(content, str):
-                    f.write(content.encode('utf-8'))
-                else:
-                    f.write(content)
+                f.write(data)
             print(f"Downloaded {name}!")
 
-load_models_safely()
+await load_models_safely()
 
 FACE_PROTO = "models/deploy.prototxt"
 FACE_MODEL = "models/res10_300x300_ssd_iter_140000.caffemodel"
